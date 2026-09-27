@@ -1,0 +1,44 @@
+# ---------- .NET ----------
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+TestResults/
+*.trx
+*.coverage
+coverage/
+.vs/
+
+# ---------- Node / Angular ----------
+node_modules/
+dist/
+.angular/
+npm-debug.log*
+yarn-error.log*
+*.tsbuildinfo
+
+# ---------- Entorno y secretos ----------
+.env
+.env.local
+.env.*.local
+appsettings.Development.local.json
+*.pfx
+secrets.json
+
+# ---------- Datos locales ----------
+storage/
+uploads/
+
+# ---------- IDE / SO ----------
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+Thumbs.db
+Desktop.ini
+.DS_Store

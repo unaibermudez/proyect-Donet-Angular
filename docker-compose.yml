@@ -1,0 +1,42 @@
+# Infraestructura local del proyecto.
+# En esta fase levanta solo la base de datos y Ollama: el backend se ejecuta con
+# `dotnet run` y el frontend con `ng serve` para tener recarga en caliente.
+# En el paso 12 se añadirán los servicios `api` y `web` con sus Dockerfile.
+
+services:
+  db:
+    # Imagen oficial de Postgres con la extensión pgvector ya compilada.
+    image: pgvector/pgvector:pg17
+    container_name: docassist-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-docassist}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-docassist_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-docassist}
+    ports:
+      # 5433 en el host para no chocar con un Postgres instalado localmente.
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      # Los .sql de esta carpeta se ejecutan solo la primera vez que se crea el volumen.
+      - ./infra/db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-docassist} -d ${POSTGRES_DB:-docassist}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ollama:
+    # Servidor de modelos local: expone una API HTTP en el puerto 11434.
+    image: ollama/ollama:latest
+    container_name: docassist-ollama
+    restart: unless-stopped
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      # Los modelos descargados pesan varios GB: el volumen evita volver a bajarlos.
+      - ollama-data:/root/.ollama
+
+volumes:
+  db-data:
+  ollama-data:

@@ -1,0 +1,124 @@
+# Asistente de documentación técnica
+
+Aplicación web para registrar equipos industriales (inversores, convertidores de
+frecuencia...), subir su documentación técnica y hacer preguntas en lenguaje
+natural. El asistente responde **usando únicamente la documentación cargada** y
+cita el documento y el fragmento del que ha sacado cada respuesta.
+
+En el último paso el asistente se convierte en un **agente** con *tool calling*:
+además de buscar en los documentos puede consultar la base de datos de equipos
+(por ejemplo, "¿qué inversores tenemos de más de 100 kW?").
+
+> Proyecto de aprendizaje. Está construido paso a paso y cada paso tiene su
+> propio documento explicativo en [`/docs`](#índice-de-documentación).
+
+## Stack
+
+| Capa | Tecnología |
+|---|---|
+| Frontend | Angular (standalone components, signals, formularios reactivos) |
+| Backend | .NET 10, Minimal APIs agrupadas por funcionalidad |
+| Datos | PostgreSQL + pgvector, EF Core con migraciones |
+| IA | `Microsoft.Extensions.AI` (`IChatClient`, `IEmbeddingGenerator`) sobre Ollama en local |
+| Tests | xUnit (unitarios + integración), Vitest/Karma en el frontend |
+| DevOps | Docker Compose, GitHub Actions |
+
+## Arquitectura
+
+```mermaid
+flowchart TB
+    subgraph browser["Navegador"]
+        UI["Angular SPA<br/>equipos · documentos · chat"]
+    end
+
+    subgraph api[".NET 10 — Minimal APIs"]
+        EQ["/api/equipment<br/>CRUD"]
+        DOC["/api/documents<br/>subida + ingesta"]
+        CHAT["/api/chat<br/>RAG + agente"]
+        ING["Servicio de ingesta<br/>troceado + embeddings"]
+        RET["Servicio de recuperación<br/>búsqueda vectorial"]
+    end
+
+    subgraph data["Datos"]
+        PG[("PostgreSQL + pgvector<br/>equipment · documents · chunks")]
+        FS[["Almacén de ficheros<br/>PDF / Markdown"]]
+    end
+
+    subgraph ai["Modelos"]
+        OLL["Ollama<br/>llama3.1 · nomic-embed-text"]
+    end
+
+    UI -->|HTTP JSON| EQ & DOC & CHAT
+    EQ --> PG
+    DOC --> FS
+    DOC --> ING
+    ING -->|embeddings| OLL
+    ING --> PG
+    CHAT --> RET
+    RET -->|embedding de la pregunta| OLL
+    RET -->|top-k por similitud| PG
+    CHAT -->|prompt + contexto| OLL
+    CHAT -.->|tool: query_equipment| PG
+```
+
+### Flujo de una pregunta (RAG)
+
+1. El usuario escribe una pregunta en el chat.
+2. El backend genera el **embedding** de la pregunta con Ollama.
+3. Busca en `document_chunks` los fragmentos más cercanos por distancia coseno (pgvector).
+4. Monta un *prompt* con esos fragmentos como contexto y unas reglas estrictas:
+   responder solo con el contexto, admitir cuando no se sabe, citar las fuentes.
+5. Devuelve la respuesta del LLM junto con la lista de citas.
+
+## Arrancar el proyecto
+
+### Requisitos
+
+- [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- [Node.js 20+](https://nodejs.org/)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+
+### Puesta en marcha
+
+```bash
+# 1. Variables de entorno
+cp .env.example .env
+
+# 2. Infraestructura (Postgres + Ollama)
+docker compose up -d
+
+# 3. Descargar los modelos (solo la primera vez, tarda unos minutos)
+pwsh ./infra/scripts/pull-models.ps1
+
+# 4. Backend
+cd backend && dotnet run --project src/DocAssist.Api
+
+# 5. Frontend (en otra terminal)
+cd frontend && npm install && npm start
+```
+
+| Servicio | URL |
+|---|---|
+| Frontend | http://localhost:4200 |
+| API | http://localhost:5080 |
+| Documentación de la API | http://localhost:5080/scalar |
+| PostgreSQL | `localhost:5433` |
+| Ollama | http://localhost:11434 |
+
+> Los puertos de backend y frontend se confirmarán en los pasos 2 y 5.
+
+## Índice de documentación
+
+Cada paso del proyecto tiene un documento en `/docs` que explica qué se hizo,
+los conceptos nuevos (con su equivalente en Spring Boot o React), cómo probarlo
+y las decisiones tomadas.
+
+| # | Documento | Contenido |
+|---|---|---|
+| 01 | [Entorno y estructura del repositorio](docs/01-entorno-y-estructura.md) | Git, carpetas, Docker Compose, pgvector, Ollama |
+
+## Revisión crítica del código generado con IA
+
+El archivo [`AI_REVIEW.md`](AI_REVIEW.md) registra cada corrección aplicada al
+código propuesto por el asistente: qué se generó, qué problema tenía y cómo se
+arregló.
