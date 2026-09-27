@@ -93,3 +93,25 @@ El objetivo no es demostrar que la IA se equivoca, sino demostrar el hábito de
 - **Qué aprendí:** antes de reescribir un commit hay que comprobar si ya es
   público (`git fetch` + `git status`), no suponerlo. Y un push rechazado es una
   señal para investigar, no un obstáculo que saltarse con `--force`.
+
+### 06 - Instrucciones de terminal que no coincidían con la realidad  (paso 3)
+- **Qué se generó:** dos indicaciones del asistente sobre comandos:
+  1. Al explicar `dotnet ef database update`, anunció que en la salida se verían
+     el `CREATE TABLE` y los `INSERT` del *seed*.
+  2. En el primer borrador de `docs/03`, para "empezar de cero con la base de
+     datos" propuso `docker compose down -v`.
+- **Qué problema tenía:**
+  1. `dotnet ef` no muestra el SQL por defecto (hace falta `--verbose`). En
+     cambio, sí salió un `fail` que nadie había anunciado y que parecía un
+     error: el `SELECT` sobre `__EFMigrationsHistory` en una base vacía.
+  2. `down -v` borra **todos** los volúmenes, incluidos los ~5 GB de modelos de
+     Ollama, para algo que solo necesitaba rehacer la base de datos.
+- **Cómo se corrigió:**
+  1. Se explicó por qué el `fail` es inofensivo y se comprobó el resultado real
+     en la base (migración registrada y 10 productos), en vez de dar por buena
+     la salida esperada. El `fail` quedó documentado en "Cómo probarlo".
+  2. Se sustituyó por `dotnet ef database drop --force` + `database update`,
+     que solo afecta a la base de datos de la aplicación.
+- **Qué aprendí:** describir la salida esperada de un comando es una afirmación
+  que se puede comprobar, y hay que comprobarla. Y antes de proponer un comando
+  destructivo hay que mirar exactamente qué borra.

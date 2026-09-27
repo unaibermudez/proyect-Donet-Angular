@@ -92,8 +92,11 @@ docker compose up -d
 # 3. Descargar los modelos (solo la primera vez, tarda unos minutos)
 pwsh ./infra/scripts/pull-models.ps1
 
-# 4. Backend
-cd backend && dotnet run --project src/DocAssist.Api
+# 4. Backend: herramientas, base de datos (migraciones + datos de ejemplo) y arranque
+cd backend
+dotnet tool restore
+dotnet ef database update --project src/DocAssist.Api
+dotnet run --project src/DocAssist.Api
 
 # 5. Frontend (en otra terminal)
 cd frontend && npm install && npm start
@@ -103,6 +106,7 @@ cd frontend && npm install && npm start
 |---|---|
 | Frontend | http://localhost:4200 |
 | API | http://localhost:5080 |
+| Salud de la API | http://localhost:5080/health · http://localhost:5080/health/ready |
 | Documentación de la API | http://localhost:5080/scalar |
 | PostgreSQL | `localhost:5433` |
 | Ollama | http://localhost:11434 |
@@ -127,6 +131,7 @@ y las decisiones tomadas.
 | 01 | [Entorno y estructura del repositorio](docs/01-entorno-y-estructura.md) | Git, carpetas, Docker Compose, pgvector, Ollama |
 | 02 | [Solución .NET y primera Minimal API](docs/02-solucion-dotnet-y-minimal-api.md) | Solución y proyectos, `Program.cs`, configuración, OpenAPI, health checks, xUnit |
 | 02b | [Cambio de dominio: tienda de tecnología](docs/02b-cambio-de-dominio.md) | Paso al dominio de la tienda, datos estructurados frente a no estructurados, tipos anulables, migraciones en desarrollo y en producción |
+| 03 | [EF Core, PostgreSQL y migraciones](docs/03-ef-core-y-migraciones.md) | `DbContext`, Fluent API, migraciones, *seed*, liveness y readiness |
 
 ## Revisión crítica del código generado con IA
 

@@ -9,9 +9,9 @@ mensaje en formato Conventional Commits, y está subido a GitHub.
 
 ## Progreso
 
-**2 de 12 pasos completados**
+**3 de 12 pasos completados**
 
-`█████░░░░░░░░░░░░░░░░░░░░░░░░░` 17 %
+`████████░░░░░░░░░░░░░░░░░░░░░░` 25 %
 
 ---
 
@@ -57,20 +57,20 @@ entornos. *Equivalente a `@SpringBootApplication` + `application.yml` + Swagger.
 
 ---
 
-### [ ] 3 — EF Core, PostgreSQL y migraciones · 🚧 en curso
+### [x] 3 — EF Core, PostgreSQL y migraciones
 
 Entidad `Product` (nombre, marca, modelo, categoría, precio, stock, fecha de
 lanzamiento y especificaciones opcionales: RAM, almacenamiento y pantalla),
 `AppDbContext`, configuración con Fluent API, cadena de conexión desde
 configuración, primera migración y aplicarla contra la base de datos del
-contenedor.
-
-> **Pendiente en este paso:** datos de ejemplo (*seed*) con **8–10 productos
-> realistas repartidos entre las tres categorías** (móviles, ordenadores y
-> consolas), para poder probar los endpoints y, más adelante, el agente.
+contenedor. Datos de ejemplo: 10 productos (4 móviles, 3 ordenadores, 3
+consolas) con `UseSeeding`, solo en desarrollo. *Health checks* separados en
+*liveness* (`/health`) y *readiness* (`/health/ready`).
 
 **Conceptos nuevos:** `DbContext`, `DbSet`, migraciones de EF Core, `dotnet ef`.
 *Equivalente a JPA `@Entity` + `JpaRepository` + Flyway.*
+
+> 📄 [`03-ef-core-y-migraciones.md`](03-ef-core-y-migraciones.md) · migración `InitialCreate` aplicada · 10 productos
 
 ---
 

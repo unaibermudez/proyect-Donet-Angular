@@ -1,3 +1,6 @@
+using DocAssist.Api.Data;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,8 +10,27 @@ var builder = WebApplication.CreateBuilder(args);
 // Genera el documento OpenAPI a partir de los endpoints definidos.
 builder.Services.AddOpenApi();
 
-// Comprobaciones de salud. En el paso 3 añadiremos una que verifique la base de datos.
-builder.Services.AddHealthChecks();
+// Base de datos: PostgreSQL con nombres de tablas y columnas en snake_case.
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options
+        .UseNpgsql(builder.Configuration.GetConnectionString("Default"))
+        .UseSnakeCaseNamingConvention();
+
+    // Datos de ejemplo solo en desarrollo. Se insertan al aplicar las migraciones.
+    if (builder.Environment.IsDevelopment())
+    {
+        options
+            .UseSeeding((context, _) => SampleData.Seed(context))
+            .UseAsyncSeeding((context, _, cancellationToken) =>
+                SampleData.SeedAsync(context, cancellationToken));
+    }
+});
+
+// La comprobación de la base de datos lleva la etiqueta "ready" para que
+// solo la ejecute /health/ready (ver abajo).
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<AppDbContext>(tags: ["ready"]);
 
 var app = builder.Build();
 
@@ -21,7 +43,18 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();    // interfaz web en /scalar
 }
 
-app.MapHealthChecks("/health");
+// Liveness: ¿el proceso está vivo? No comprueba dependencias, así que una caída
+// de la base de datos no hace que se reinicie la aplicación.
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    Predicate = _ => false
+});
+
+// Readiness: ¿puede atender peticiones? Comprueba la base de datos.
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready")
+});
 
 app.MapGet("/api/info", (IConfiguration config, IHostEnvironment env) =>
         new AppInfoResponse(
