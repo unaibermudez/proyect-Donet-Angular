@@ -21,7 +21,7 @@ mensaje en formato Conventional Commits, y está subido a GitHub.
 - [x] **Node.js 20+** — versión instalada: `v20.11.1`
 - [x] **Docker Desktop** — versión instalada: `29.8.0`
 - [x] **Git** — versión instalada: `2.49.0`
-- [ ] **Modelos de Ollama descargados** — `nomic-embed-text` y `llama3.1:8b`
+- [x] **Modelos de Ollama descargados** — `nomic-embed-text` (768 dimensiones) y `llama3.1:8b` (tool calling verificado)
 - [ ] **Docker en el PATH del terminal** — ver nota al final
 
 ---
@@ -169,6 +169,19 @@ completo.
 GitHub Actions con Maven.*
 
 ---
+
+## Hallazgos de la verificación que afectan a pasos futuros
+
+Pruebas hechas contra los modelos reales al cerrar el paso 1:
+
+| Hallazgo | Dato medido | Afecta a |
+|---|---|---|
+| Los embeddings de `nomic-embed-text` tienen **768 dimensiones** | `/api/embed` devuelve un vector de 768 | Paso 8: la columna será `vector(768)`. Si se cambia de modelo de embeddings, hay que cambiar la columna y regenerar todos los vectores |
+| `llama3.1:8b` corre **100 % en CPU**, a unos **6 tokens/s** | `ollama ps` + segunda llamada en caliente | Pasos 10 y 11: una respuesta de 200 tokens tarda ~35 s. Conviene hacer *streaming* para que el usuario vea el texto aparecer |
+| La primera llamada tarda **~49 s** | carga del modelo en memoria | Demo: lanzar una pregunta de calentamiento antes de enseñarlo |
+| La GPU es una **GTX 1650 de 4 GB** | `nvidia-smi` | `llama3.1:8b` (4,9 GB) no cabe entero. Opción a valorar en el paso 10: un modelo de 3B con tool calling (`llama3.2:3b`, `qwen2.5:3b`) que sí cabe en la GPU |
+| El contexto por defecto es de **4096 tokens** | `ollama ps` | Paso 10: con varios *chunks* de contexto puede quedarse corto; habrá que ajustar `num_ctx` |
+| El modelo pidió la herramienta con `minPowerKw: "100"` (**texto**, no número) | prueba de tool calling | Paso 11: los argumentos de las herramientas hay que validarlos y convertirlos, nunca fiarse del tipo que manda el modelo |
 
 ## Nota: Docker en el PATH
 
