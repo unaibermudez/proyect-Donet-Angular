@@ -115,6 +115,7 @@ y las decisiones tomadas.
 
 | # | Documento | Contenido |
 |---|---|---|
+| 00 | [Plan y progreso](docs/00-plan-y-progreso.md) | Los 12 pasos del proyecto con su estado |
 | 01 | [Entorno y estructura del repositorio](docs/01-entorno-y-estructura.md) | Git, carpetas, Docker Compose, pgvector, Ollama |
 
 ## Revisión crítica del código generado con IA

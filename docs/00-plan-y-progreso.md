@@ -1,0 +1,190 @@
+# 00 · Plan y progreso
+
+Lista de los 12 pasos del proyecto con una descripción breve de cada uno, para ir
+marcando lo que se va completando.
+
+Un paso se considera **terminado** cuando cumple las cuatro cosas: el código
+funciona y se ha probado, existe su documento en `/docs`, hay un commit con
+mensaje en formato Conventional Commits, y está subido a GitHub.
+
+## Progreso
+
+**1 de 12 pasos completados**
+
+`███░░░░░░░░░░░░░░░░░░░░░░░░░░░` 8 %
+
+---
+
+## Requisitos previos
+
+- [x] **.NET 10 SDK** — versión instalada: `10.0.401`
+- [x] **Node.js 20+** — versión instalada: `v20.11.1`
+- [x] **Docker Desktop** — versión instalada: `29.8.0`
+- [x] **Git** — versión instalada: `2.49.0`
+- [ ] **Modelos de Ollama descargados** — `nomic-embed-text` y `llama3.1:8b`
+- [ ] **Docker en el PATH del terminal** — ver nota al final
+
+---
+
+## Pasos
+
+### [x] 1 — Entorno y estructura del repositorio
+
+Andamiaje del proyecto: repositorio git, carpetas `backend/` `frontend/` `docs/`
+`infra/`, `.gitignore`, `.editorconfig`, `.gitattributes`, `docker-compose.yml`
+con PostgreSQL+pgvector y Ollama, `.env.example`, README con diagrama de
+arquitectura y `AI_REVIEW.md`.
+
+> 📄 [`01-entorno-y-estructura.md`](01-entorno-y-estructura.md) · commit `025e3f6`
+
+---
+
+### [ ] 2 — Primer proyecto .NET: solución y Minimal API
+
+Crear la solución `.sln`, el proyecto de API y el de tests. Entender `Program.cs`,
+el `WebApplicationBuilder`, `appsettings.json`, un endpoint `/health` y la
+documentación automática de la API con OpenAPI.
+
+**Conceptos nuevos:** Minimal APIs, `WebApplicationBuilder`, configuración por
+entornos. *Equivalente a `@SpringBootApplication` + `application.yml` + Swagger.*
+
+---
+
+### [ ] 3 — EF Core, PostgreSQL y migraciones
+
+Entidad `Equipment` (nombre, modelo, categoría, potencia, fecha de alta),
+`AppDbContext`, configuración con Fluent API, cadena de conexión desde
+configuración, primera migración y aplicarla contra la base de datos del
+contenedor.
+
+**Conceptos nuevos:** `DbContext`, `DbSet`, migraciones de EF Core, `dotnet ef`.
+*Equivalente a JPA `@Entity` + `JpaRepository` + Flyway.*
+
+---
+
+### [ ] 4 — CRUD de equipos: endpoints, validación y errores
+
+Endpoints agrupados con `MapGroup("/api/equipment")` en su propio archivo, DTOs
+con `record`, validación de entrada, manejo global de errores devolviendo
+ProblemDetails (RFC 7807), logging estructurado. Tests unitarios de validación y
+un test de integración del endpoint.
+
+**Conceptos nuevos:** `MapGroup`, `record`, `Results.Problem`, xUnit,
+`WebApplicationFactory`. *Equivalente a `@RestController` + `@Valid` +
+`@ControllerAdvice` + `@SpringBootTest`.*
+
+---
+
+### [ ] 5 — Frontend Angular: proyecto, routing y lista de equipos
+
+Crear la app Angular con standalone components, configurar `provideHttpClient` y
+el routing, un `EquipmentService` inyectable, signals para el estado, y una tabla
+que consuma la API. Proxy de desarrollo para evitar problemas de CORS.
+
+**Conceptos nuevos:** standalone components, signals, inyección de dependencias
+de Angular, `HttpClient`, `@if`/`@for`. *Equivalente a Vite + React Router +
+un hook `useEquipment`; signals frente a `useState`.*
+
+---
+
+### [ ] 6 — Formularios reactivos: crear y editar equipos
+
+Formulario reactivo con validación y mensajes de error, estados de carga, borrado
+con confirmación. Un test de componente con `TestBed`.
+
+**Conceptos nuevos:** `FormGroup`, `FormControl`, `Validators`, `TestBed`.
+*Equivalente a react-hook-form + Zod.*
+
+---
+
+### [ ] 7 — Subida de documentos
+
+Entidad `Document` relacionada con `Equipment`, endpoint que acepta ficheros
+multipart, límites de tamaño y tipos permitidos (`.md` y `.pdf`), almacenamiento
+en disco con ruta configurable, y la interfaz de subida en Angular.
+
+**Conceptos nuevos:** `IFormFile`, `multipart/form-data`, relaciones uno a muchos
+en EF Core. *Equivalente a `MultipartFile` en Spring.*
+
+---
+
+### [ ] 8 — Ingesta: troceado, embeddings y pgvector
+
+Extraer el texto de Markdown y PDF, trocearlo en *chunks* con solapamiento,
+generar los embeddings con `IEmbeddingGenerator` apuntando a Ollama, y guardarlos
+en una tabla `DocumentChunk` con columna de tipo `vector` e índice HNSW. Endpoint
+de ingesta y estado del documento (pendiente / procesando / listo). Tests del
+troceador, que es código puro sin IA.
+
+**Conceptos nuevos:** chunking y solapamiento, embeddings, `Microsoft.Extensions.AI`,
+índices vectoriales. *El corazón del RAG.*
+
+---
+
+### [ ] 9 — Búsqueda semántica (todavía sin LLM)
+
+Endpoint `POST /api/search` que genera el embedding de la pregunta y devuelve los
+`k` fragmentos más parecidos por distancia coseno, con su puntuación de
+similitud.
+
+**Por qué este paso separado:** aislar la recuperación antes de meter el LLM es lo
+que hace que el RAG se pueda depurar. Si las respuestas salen mal, aquí se ve si
+el problema es la búsqueda o el *prompt*.
+
+---
+
+### [ ] 10 — Chat con RAG y citas
+
+`IChatClient` con un *prompt* de sistema bien diseñado: responder solo con el
+contexto recuperado, admitir cuando no se sabe la respuesta, y citar las fuentes.
+La respuesta incluye la lista de citas (documento y fragmento). Interfaz de chat
+en Angular con las citas visibles.
+
+**Conceptos nuevos:** ingeniería de *prompt*, *grounding*, citas verificables,
+streaming de respuestas.
+
+---
+
+### [ ] 11 — Agente con tool calling
+
+Convertir el chat en un agente con dos herramientas: `search_documentation` (busca
+en los documentos) y `query_equipment` (consulta la base de datos, por ejemplo
+"inversores de más de 100 kW"). Bucle de invocación de herramientas y traza en la
+interfaz de qué herramientas se han llamado.
+
+**Conceptos nuevos:** *tool calling* / *function calling*, descripción de
+herramientas, el bucle del agente. *Es la parte de más valor para la entrevista.*
+
+---
+
+### [ ] 12 — Docker Compose completo, CI y pulido final
+
+Dockerfiles multi-stage para backend y frontend, `docker-compose.yml` con los
+cuatro servicios y sus *healthchecks*, workflow de GitHub Actions que compile y
+ejecute los tests de las dos mitades, README final revisado e índice de `/docs`
+completo.
+
+**Conceptos nuevos:** builds multi-stage, `dotnet publish`, GitHub Actions con
+`setup-dotnet` y `setup-node`. *Equivalente a lo que ya conoces de Docker y
+GitHub Actions con Maven.*
+
+---
+
+## Nota: Docker en el PATH
+
+Docker Desktop se ha instalado en una ruta de usuario
+(`%LOCALAPPDATA%\Programs\DockerDesktop`) y su carpeta `resources\bin` no estaba
+en el `PATH` del terminal. Si al escribir `docker --version` sale "command not
+found", hay dos opciones:
+
+1. **Cerrar y volver a abrir el terminal.** Docker Desktop añade la carpeta al
+   `PATH` del usuario al completar la instalación, pero los terminales ya abiertos
+   siguen con el `PATH` antiguo.
+2. **Añadirlo a mano** en la sesión actual:
+
+   ```powershell
+   $env:PATH = "$env:LOCALAPPDATA\Programs\DockerDesktop\resources\bin;$env:PATH"
+   ```
+
+Para que sea permanente, en Docker Desktop: *Settings → Advanced → Allow the
+default Docker socket / Add CLI tools to PATH*.
