@@ -9,9 +9,9 @@ mensaje en formato Conventional Commits, y está subido a GitHub.
 
 ## Progreso
 
-**1 de 12 pasos completados**
+**2 de 12 pasos completados**
 
-`███░░░░░░░░░░░░░░░░░░░░░░░░░░░` 8 %
+`█████░░░░░░░░░░░░░░░░░░░░░░░░░` 17 %
 
 ---
 
@@ -39,14 +39,16 @@ arquitectura y `AI_REVIEW.md`.
 
 ---
 
-### [ ] 2 — Primer proyecto .NET: solución y Minimal API
+### [x] 2 — Primer proyecto .NET: solución y Minimal API
 
-Crear la solución `.sln`, el proyecto de API y el de tests. Entender `Program.cs`,
+Crear la solución `.slnx`, el proyecto de API y el de tests. Entender `Program.cs`,
 el `WebApplicationBuilder`, `appsettings.json`, un endpoint `/health` y la
 documentación automática de la API con OpenAPI.
 
 **Conceptos nuevos:** Minimal APIs, `WebApplicationBuilder`, configuración por
 entornos. *Equivalente a `@SpringBootApplication` + `application.yml` + Swagger.*
+
+> 📄 [`02-solucion-dotnet-y-minimal-api.md`](02-solucion-dotnet-y-minimal-api.md) · 3 tests de integración en verde
 
 ---
 

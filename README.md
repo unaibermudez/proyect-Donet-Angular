@@ -105,7 +105,13 @@ cd frontend && npm install && npm start
 | PostgreSQL | `localhost:5433` |
 | Ollama | http://localhost:11434 |
 
-> Los puertos de backend y frontend se confirmarán en los pasos 2 y 5.
+> El puerto del frontend se confirmará en el paso 5.
+
+### Tests
+
+```bash
+cd backend && dotnet test
+```
 
 ## Índice de documentación
 
@@ -117,6 +123,7 @@ y las decisiones tomadas.
 |---|---|---|
 | 00 | [Plan y progreso](docs/00-plan-y-progreso.md) | Los 12 pasos del proyecto con su estado |
 | 01 | [Entorno y estructura del repositorio](docs/01-entorno-y-estructura.md) | Git, carpetas, Docker Compose, pgvector, Ollama |
+| 02 | [Solución .NET y primera Minimal API](docs/02-solucion-dotnet-y-minimal-api.md) | Solución y proyectos, `Program.cs`, configuración, OpenAPI, health checks, xUnit |
 
 ## Revisión crítica del código generado con IA
 
