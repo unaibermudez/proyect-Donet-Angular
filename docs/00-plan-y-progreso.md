@@ -50,23 +50,33 @@ entornos. *Equivalente a `@SpringBootApplication` + `application.yml` + Swagger.
 
 > 📄 [`02-solucion-dotnet-y-minimal-api.md`](02-solucion-dotnet-y-minimal-api.md) · 3 tests de integración en verde
 
+> 🔀 **Cambio de dominio entre los pasos 2 y 3:** la aplicación pasa de ser un
+> asistente de documentación técnica a un **asistente de tienda de tecnología**
+> (móviles, ordenadores y consolas). La arquitectura y el stack no cambian.
+> Explicado en [`02b-cambio-de-dominio.md`](02b-cambio-de-dominio.md).
+
 ---
 
-### [ ] 3 — EF Core, PostgreSQL y migraciones
+### [ ] 3 — EF Core, PostgreSQL y migraciones · 🚧 en curso
 
-Entidad `Equipment` (nombre, modelo, categoría, potencia, fecha de alta),
+Entidad `Product` (nombre, marca, modelo, categoría, precio, stock, fecha de
+lanzamiento y especificaciones opcionales: RAM, almacenamiento y pantalla),
 `AppDbContext`, configuración con Fluent API, cadena de conexión desde
 configuración, primera migración y aplicarla contra la base de datos del
 contenedor.
+
+> **Pendiente en este paso:** datos de ejemplo (*seed*) con **8–10 productos
+> realistas repartidos entre las tres categorías** (móviles, ordenadores y
+> consolas), para poder probar los endpoints y, más adelante, el agente.
 
 **Conceptos nuevos:** `DbContext`, `DbSet`, migraciones de EF Core, `dotnet ef`.
 *Equivalente a JPA `@Entity` + `JpaRepository` + Flyway.*
 
 ---
 
-### [ ] 4 — CRUD de equipos: endpoints, validación y errores
+### [ ] 4 — CRUD de productos: endpoints, validación y errores
 
-Endpoints agrupados con `MapGroup("/api/equipment")` en su propio archivo, DTOs
+Endpoints agrupados con `MapGroup("/api/products")` en su propio archivo, DTOs
 con `record`, validación de entrada, manejo global de errores devolviendo
 ProblemDetails (RFC 7807), logging estructurado. Tests unitarios de validación y
 un test de integración del endpoint.
@@ -77,19 +87,19 @@ un test de integración del endpoint.
 
 ---
 
-### [ ] 5 — Frontend Angular: proyecto, routing y lista de equipos
+### [ ] 5 — Frontend Angular: proyecto, routing y lista de productos
 
 Crear la app Angular con standalone components, configurar `provideHttpClient` y
-el routing, un `EquipmentService` inyectable, signals para el estado, y una tabla
+el routing, un `ProductService` inyectable, signals para el estado, y una tabla
 que consuma la API. Proxy de desarrollo para evitar problemas de CORS.
 
 **Conceptos nuevos:** standalone components, signals, inyección de dependencias
 de Angular, `HttpClient`, `@if`/`@for`. *Equivalente a Vite + React Router +
-un hook `useEquipment`; signals frente a `useState`.*
+un hook `useProducts`; signals frente a `useState`.*
 
 ---
 
-### [ ] 6 — Formularios reactivos: crear y editar equipos
+### [ ] 6 — Formularios reactivos: crear y editar productos
 
 Formulario reactivo con validación y mensajes de error, estados de carga, borrado
 con confirmación. Un test de componente con `TestBed`.
@@ -101,9 +111,14 @@ con confirmación. Un test de componente con `TestBed`.
 
 ### [ ] 7 — Subida de documentos
 
-Entidad `Document` relacionada con `Equipment`, endpoint que acepta ficheros
-multipart, límites de tamaño y tipos permitidos (`.md` y `.pdf`), almacenamiento
-en disco con ruta configurable, y la interfaz de subida en Angular.
+Entidad `Document`, endpoint que acepta ficheros multipart, límites de tamaño y
+tipos permitidos (`.md` y `.pdf`), almacenamiento en disco con ruta
+configurable, y la interfaz de subida en Angular.
+
+> **Nota para este paso:** la relación de `Document` con `Product` será
+> **opcional**. Un manual pertenece a un producto concreto; los documentos
+> generales de la tienda (garantía, devoluciones, envíos) no pertenecen a
+> ninguno y tendrán la clave foránea a nulo.
 
 **Conceptos nuevos:** `IFormFile`, `multipart/form-data`, relaciones uno a muchos
 en EF Core. *Equivalente a `MultipartFile` en Spring.*
@@ -150,9 +165,10 @@ streaming de respuestas.
 ### [ ] 11 — Agente con tool calling
 
 Convertir el chat en un agente con dos herramientas: `search_documentation` (busca
-en los documentos) y `query_equipment` (consulta la base de datos, por ejemplo
-"inversores de más de 100 kW"). Bucle de invocación de herramientas y traza en la
-interfaz de qué herramientas se han llamado.
+en los manuales y las políticas de la tienda) y `query_products` (consulta la
+base de datos de productos, por ejemplo "¿qué móviles tenemos por debajo de
+500 € con al menos 8 GB de RAM?"). Bucle de invocación de herramientas y traza
+en la interfaz de qué herramientas se han llamado.
 
 **Conceptos nuevos:** *tool calling* / *function calling*, descripción de
 herramientas, el bucle del agente. *Es la parte de más valor para la entrevista.*
@@ -183,7 +199,7 @@ Pruebas hechas contra los modelos reales al cerrar el paso 1:
 | La primera llamada tarda **~49 s** | carga del modelo en memoria | Demo: lanzar una pregunta de calentamiento antes de enseñarlo |
 | La GPU es una **GTX 1650 de 4 GB** | `nvidia-smi` | `llama3.1:8b` (4,9 GB) no cabe entero. Opción a valorar en el paso 10: un modelo de 3B con tool calling (`llama3.2:3b`, `qwen2.5:3b`) que sí cabe en la GPU |
 | El contexto por defecto es de **4096 tokens** | `ollama ps` | Paso 10: con varios *chunks* de contexto puede quedarse corto; habrá que ajustar `num_ctx` |
-| El modelo pidió la herramienta con `minPowerKw: "100"` (**texto**, no número) | prueba de tool calling | Paso 11: los argumentos de las herramientas hay que validarlos y convertirlos, nunca fiarse del tipo que manda el modelo |
+| En la prueba de tool calling, el modelo envió un argumento numérico como **texto** (`"100"` en lugar de `100`) | prueba de tool calling | Paso 11: los argumentos de las herramientas hay que validarlos y convertirlos, nunca fiarse del tipo que manda el modelo |
 
 ## Nota: Docker en el PATH
 

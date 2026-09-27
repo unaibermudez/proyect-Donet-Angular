@@ -143,7 +143,7 @@ docker compose down -v     # borrar también los datos y los modelos descargados
 
 **Frases que puedo decir:**
 
-> "Monté la infraestructura con Docker Compose: Postgres con pgvector y Ollama. Elegí pgvector en lugar de una base vectorial dedicada porque el volumen de datos no lo justifica y así mantengo los equipos, los documentos y los embeddings en la misma base, con transacciones consistentes."
+> "Monté la infraestructura con Docker Compose: Postgres con pgvector y Ollama. Elegí pgvector en lugar de una base vectorial dedicada porque el volumen de datos no lo justifica y así mantengo los productos, los documentos y los embeddings en la misma base, con transacciones consistentes."
 
 > "Uso Ollama en local para desarrollar sin coste ni claves de API, pero el proveedor es intercambiable por configuración gracias a las abstracciones de `Microsoft.Extensions.AI`. La configuración de IA vive en variables de entorno y `.env` está en `.gitignore`: no hay ninguna credencial en el repositorio."
 

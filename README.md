@@ -1,13 +1,15 @@
-# Asistente de documentación técnica
+# Asistente de tienda de tecnología
 
-Aplicación web para registrar equipos industriales (inversores, convertidores de
-frecuencia...), subir su documentación técnica y hacer preguntas en lenguaje
-natural. El asistente responde **usando únicamente la documentación cargada** y
-cita el documento y el fragmento del que ha sacado cada respuesta.
+Aplicación web para una tienda de tecnología que vende **móviles, ordenadores y
+consolas**. Permite gestionar el catálogo de productos, subir documentos de la
+tienda (manuales de producto y políticas generales: garantía, devoluciones,
+envíos) y hacer preguntas en lenguaje natural. El asistente responde **usando
+únicamente la documentación cargada** y cita el documento y el fragmento del que
+ha sacado cada respuesta.
 
 En el último paso el asistente se convierte en un **agente** con *tool calling*:
-además de buscar en los documentos puede consultar la base de datos de equipos
-(por ejemplo, "¿qué inversores tenemos de más de 100 kW?").
+además de buscar en los documentos puede consultar la base de datos de productos
+(por ejemplo, "¿qué móviles tenemos por debajo de 500 € con al menos 8 GB de RAM?").
 
 > Proyecto de aprendizaje. Está construido paso a paso y cada paso tiene su
 > propio documento explicativo en [`/docs`](#índice-de-documentación).
@@ -28,11 +30,11 @@ además de buscar en los documentos puede consultar la base de datos de equipos
 ```mermaid
 flowchart TB
     subgraph browser["Navegador"]
-        UI["Angular SPA<br/>equipos · documentos · chat"]
+        UI["Angular SPA<br/>productos · documentos · chat"]
     end
 
     subgraph api[".NET 10 — Minimal APIs"]
-        EQ["/api/equipment<br/>CRUD"]
+        PRD["/api/products<br/>CRUD"]
         DOC["/api/documents<br/>subida + ingesta"]
         CHAT["/api/chat<br/>RAG + agente"]
         ING["Servicio de ingesta<br/>troceado + embeddings"]
@@ -40,7 +42,7 @@ flowchart TB
     end
 
     subgraph data["Datos"]
-        PG[("PostgreSQL + pgvector<br/>equipment · documents · chunks")]
+        PG[("PostgreSQL + pgvector<br/>products · documents · chunks")]
         FS[["Almacén de ficheros<br/>PDF / Markdown"]]
     end
 
@@ -48,8 +50,8 @@ flowchart TB
         OLL["Ollama<br/>llama3.1 · nomic-embed-text"]
     end
 
-    UI -->|HTTP JSON| EQ & DOC & CHAT
-    EQ --> PG
+    UI -->|HTTP JSON| PRD & DOC & CHAT
+    PRD --> PG
     DOC --> FS
     DOC --> ING
     ING -->|embeddings| OLL
@@ -58,7 +60,7 @@ flowchart TB
     RET -->|embedding de la pregunta| OLL
     RET -->|top-k por similitud| PG
     CHAT -->|prompt + contexto| OLL
-    CHAT -.->|tool: query_equipment| PG
+    CHAT -.->|tool: query_products| PG
 ```
 
 ### Flujo de una pregunta (RAG)
@@ -124,6 +126,7 @@ y las decisiones tomadas.
 | 00 | [Plan y progreso](docs/00-plan-y-progreso.md) | Los 12 pasos del proyecto con su estado |
 | 01 | [Entorno y estructura del repositorio](docs/01-entorno-y-estructura.md) | Git, carpetas, Docker Compose, pgvector, Ollama |
 | 02 | [Solución .NET y primera Minimal API](docs/02-solucion-dotnet-y-minimal-api.md) | Solución y proyectos, `Program.cs`, configuración, OpenAPI, health checks, xUnit |
+| 02b | [Cambio de dominio: tienda de tecnología](docs/02b-cambio-de-dominio.md) | Paso al dominio de la tienda, datos estructurados frente a no estructurados, tipos anulables, migraciones en desarrollo y en producción |
 
 ## Revisión crítica del código generado con IA
 
