@@ -95,9 +95,12 @@ configurar nada. Con `string` pasa lo mismo gracias a `<Nullable>enable</Nullabl
 `string` → `NOT NULL`, `string?` → admite nulos. Es el equivalente a
 `@Column(nullable = false)` de JPA, pero deducido del tipo.
 
-Las tres especificaciones son anulables porque **no aplican igual a todas las
-categorías**: una consola no tiene pantalla, y guardar `0` pulgadas sería mentir
-(el agente podría acabar diciendo que "tiene una pantalla de 0 pulgadas").
+Las tres especificaciones son anulables porque **no aplican igual a todos los
+productos**, ni siquiera dentro de una misma categoría: una PS5 no tiene
+pantalla, pero una Nintendo Switch sí. Guardar `0` pulgadas para la PS5 sería
+mentir (el agente podría acabar diciendo que "tiene una pantalla de 0
+pulgadas"). Por eso tampoco se puede decidir por categoría si un campo aplica:
+lo decide cada producto.
 
 ### Por qué cambiar de dominio ahora sale barato
 
@@ -182,7 +185,7 @@ el cambio.
 | Decisión | Por qué | Alternativas |
 |---|---|---|
 | Identificadores de código en inglés, interfaz y documentación en español | Es la convención habitual en equipos de desarrollo: el código se lee igual en cualquier empresa, y la documentación está en el idioma del usuario | Todo en español (`Producto`, `Precio`): se mezcla con palabras clave y librerías en inglés y queda raro |
-| Especificaciones como **columnas anulables** en `products` | El agente tiene que filtrar por ellas con SQL sencillo (`WHERE ram_gb >= 8`), y solo son tres | Tabla aparte `ProductSpecs` (1 a 1): más normalizada, pero obliga a un `JOIN` en cada consulta. Columna **JSONB**: flexible para specs muy distintas por categoría, pero las consultas y la validación son más complejas y EF Core las traduce peor |
+| Especificaciones como **columnas anulables** en `products` | El agente tiene que filtrar por ellas con SQL sencillo (`WHERE ram_gb >= 8`), y solo son tres | Tabla aparte `ProductSpecs` (1 a 1): más normalizada, pero obliga a un `JOIN` en cada consulta. Columna **JSONB**: flexible para specs muy distintas por categoría, y EF Core la puede mapear con `ToJson()`; pero las consultas, los índices y la validación son más complejos que con columnas normales, y para tres campos no compensa |
 | Categoría como **enum** guardado como texto | Solo hay tres categorías y no cambian desde la interfaz; el código puede usarlas con seguridad de tipos | **Tabla de categorías** con clave foránea: mejor si el usuario pudiera crear categorías nuevas, que no es el caso |
 | `decimal` para el precio | Representación exacta en base 10: `0.1 + 0.2` da `0.3`. Con `double` aparecen errores de redondeo inaceptables con dinero | `double` (incorrecto para dinero); guardar céntimos en un `int` (válido, pero menos legible) |
 | Índice por `Category` y no por `Brand` | Casi todas las preguntas del agente filtran por categoría. Con 8–10 productos ningún índice se nota; se añade el de categoría por coherencia con el uso previsto | Índice también por `Brand`: se añadiría si aparecieran consultas frecuentes por marca |
@@ -215,7 +218,8 @@ el cambio.
   dinero los errores de redondeo no son aceptables. `decimal` trabaja en base 10.
 
 - *¿Por qué las especificaciones son anulables?*
-  Porque no aplican a todos los productos: una consola no tiene pantalla. `null`
+  Porque no aplican a todos los productos: una PS5 no tiene pantalla y una
+  Nintendo Switch sí, así que ni siquiera depende de la categoría. `null`
   significa "no aplica", mientras que `0` sería un dato falso.
 
 - *¿Se pueden borrar migraciones?*
