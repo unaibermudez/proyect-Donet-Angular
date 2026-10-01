@@ -115,3 +115,20 @@ El objetivo no es demostrar que la IA se equivoca, sino demostrar el hábito de
 - **Qué aprendí:** describir la salida esperada de un comando es una afirmación
   que se puede comprobar, y hay que comprobarla. Y antes de proponer un comando
   destructivo hay que mirar exactamente qué borra.
+
+### 07 - `UseExceptionHandler()` convertía errores del cliente en 500  (paso 4)
+- **Qué se generó:** `app.UseExceptionHandler()` sin opciones, para devolver
+  cualquier excepción no controlada como un 500 con ProblemDetails.
+- **Qué problema tenía:** al probar un JSON mal formado y una categoría
+  inexistente (`"Tablet"`), la API respondía **500**. En desarrollo, las Minimal
+  APIs lanzan `BadHttpRequestException` cuando no pueden leer la petición, y el
+  gestor la trataba como un fallo del servidor. Además, en producción no se lanza
+  esa excepción, así que el mismo error daba 500 en desarrollo y 400 en
+  producción. El asistente sospechaba el problema (pidió que se le avisara si
+  salía un 500), pero no lo resolvió de antemano.
+- **Cómo se corrigió:** se añadió un `StatusCodeSelector` que usa el código que
+  trae la propia `BadHttpRequestException` (400, o 413 si el cuerpo es demasiado
+  grande) y deja el 500 para el resto de excepciones.
+- **Qué aprendí:** probar los casos de error, no solo el camino feliz. Y si se
+  sospecha de un fallo, es mejor comprobarlo antes de dar el código por bueno
+  que esperar a que aparezca.

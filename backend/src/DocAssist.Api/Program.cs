@@ -1,4 +1,6 @@
+using System.Text.Json.Serialization;
 using DocAssist.Api.Data;
+using DocAssist.Api.Features.Products;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
@@ -9,6 +11,26 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Genera el documento OpenAPI a partir de los endpoints definidos.
 builder.Services.AddOpenApi();
+
+// Los enums viajan en JSON como texto ("Phone") y no como número (0).
+builder.Services.ConfigureHttpJsonOptions(options =>
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
+// Si no se puede leer la petición (JSON mal formado...), responder 400 directamente
+// en vez de lanzar una excepción. Es lo que ya pasa en producción: así desarrollo
+// se comporta igual y un error del cliente no se registra como error del servidor.
+builder.Services.Configure<RouteHandlerOptions>(options => options.ThrowOnBadRequest = false);
+
+// Valida automáticamente los parámetros de los endpoints que tengan atributos
+// de validación ([Required], [Range]...). Si fallan, responde 400 sin llamar al endpoint.
+builder.Services.AddValidation();
+
+// Todos los errores de la API en formato ProblemDetails (RFC 9457).
+// "instance" indica qué petición falló, para facilitar la depuración.
+builder.Services.AddProblemDetails(options =>
+    options.CustomizeProblemDetails = context =>
+        context.ProblemDetails.Instance =
+            $"{context.HttpContext.Request.Method} {context.HttpContext.Request.Path}");
 
 // Base de datos: PostgreSQL con nombres de tablas y columnas en snake_case.
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -35,6 +57,23 @@ builder.Services.AddHealthChecks()
 var app = builder.Build();
 
 // ---------- 2. Pipeline y endpoints (después de Build) ----------
+
+// Lo primero del pipeline: cualquier excepción no controlada en lo que viene
+// después se convierte en un error con ProblemDetails, sin detalles internos.
+// La excepción completa queda en el log, con el mismo traceId.
+app.UseExceptionHandler(new ExceptionHandlerOptions
+{
+    // Si no se pudo leer la petición (JSON mal formado, enum inexistente...),
+    // el error es del cliente: se usa el código que trae la excepción (400, 413...)
+    // en lugar de un 500.
+    StatusCodeSelector = exception => exception is BadHttpRequestException badRequest
+        ? badRequest.StatusCode
+        : StatusCodes.Status500InternalServerError
+});
+
+// Las respuestas de error sin cuerpo (como el NotFound() de los endpoints)
+// reciben un ProblemDetails.
+app.UseStatusCodePages();
 
 // La documentación de la API solo se expone en desarrollo.
 if (app.Environment.IsDevelopment())
@@ -63,6 +102,8 @@ app.MapGet("/api/info", (IConfiguration config, IHostEnvironment env) =>
             DotnetVersion: Environment.Version.ToString()))
     .WithTags("System")
     .WithSummary("Información básica de la aplicación");
+
+app.MapProductEndpoints();
 
 app.Run();
 

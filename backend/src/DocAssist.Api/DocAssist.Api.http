@@ -1,0 +1,98 @@
+@baseUrl = http://localhost:5080
+
+# Id del producto creado con el POST de abajo. Cámbialo por el que devuelva.
+@productId = 11
+
+### Listar todos los productos
+GET {{baseUrl}}/api/products
+
+### Filtrar por categoría (Phone, Computer, Console)
+GET {{baseUrl}}/api/products?category=Console
+
+### Obtener un producto
+GET {{baseUrl}}/api/products/1
+
+### Producto inexistente (404)
+GET {{baseUrl}}/api/products/999
+
+### Crear un producto
+POST {{baseUrl}}/api/products
+Content-Type: application/json
+
+{
+  "name": "Apple iPhone 17 256 GB",
+  "brand": "Apple",
+  "model": "iPhone 17",
+  "category": "Phone",
+  "price": 959.00,
+  "stock": 15,
+  "releaseDate": "2025-09-19",
+  "ramGb": 8,
+  "storageGb": 256,
+  "screenInches": 6.3
+}
+
+### Modificar el producto creado (PUT reemplaza todos los campos)
+PUT {{baseUrl}}/api/products/{{productId}}
+Content-Type: application/json
+
+{
+  "name": "Apple iPhone 17 256 GB",
+  "brand": "Apple",
+  "model": "iPhone 17",
+  "category": "Phone",
+  "price": 899.00,
+  "stock": 12,
+  "releaseDate": "2025-09-19",
+  "ramGb": 8,
+  "storageGb": 256,
+  "screenInches": 6.3
+}
+
+### Borrar el producto creado (204; la segunda vez, 404)
+DELETE {{baseUrl}}/api/products/{{productId}}
+
+### ---------- Datos que no deberían aceptarse ----------
+
+### Cuerpo vacío
+POST {{baseUrl}}/api/products
+Content-Type: application/json
+
+{}
+
+### Categoría que no existe
+POST {{baseUrl}}/api/products
+Content-Type: application/json
+
+{
+  "name": "iPad Air",
+  "brand": "Apple",
+  "model": "iPad Air M3",
+  "category": "Tablet",
+  "price": 699,
+  "stock": 5,
+  "releaseDate": "2025-03-12"
+}
+
+### JSON mal formado (falta cerrar la llave)
+POST {{baseUrl}}/api/products
+Content-Type: application/json
+
+{
+  "name": "Sin cerrar"
+
+### Datos absurdos
+POST {{baseUrl}}/api/products
+Content-Type: application/json
+
+{
+  "name": "",
+  "brand": "",
+  "model": "",
+  "category": "Console",
+  "price": -50,
+  "stock": -3,
+  "releaseDate": "2099-01-01",
+  "ramGb": 0,
+  "screenInches": -1
+}

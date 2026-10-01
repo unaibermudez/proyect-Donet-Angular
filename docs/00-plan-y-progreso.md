@@ -74,16 +74,29 @@ consolas) con `UseSeeding`, solo en desarrollo. *Health checks* separados en
 
 ---
 
-### [ ] 4 — CRUD de productos: endpoints, validación y errores
+### [ ] 4 — CRUD de productos: endpoints, validación y errores · 🚧 en curso (7 de 9 tramos)
 
 Endpoints agrupados con `MapGroup("/api/products")` en su propio archivo, DTOs
 con `record`, validación de entrada, manejo global de errores devolviendo
-ProblemDetails (RFC 7807), logging estructurado. Tests unitarios de validación y
-un test de integración del endpoint.
+ProblemDetails (RFC 9457), logging estructurado. Tests unitarios de validación y
+tests de integración de los endpoints contra Postgres con Testcontainers.
 
-**Conceptos nuevos:** `MapGroup`, `record`, `Results.Problem`, xUnit,
-`WebApplicationFactory`. *Equivalente a `@RestController` + `@Valid` +
-`@ControllerAdvice` + `@SpringBootTest`.*
+**Conceptos nuevos:** `MapGroup`, `record`, `TypedResults`, validación de
+.NET 10, ProblemDetails, middleware, logging estructurado, Testcontainers.
+*Equivalente a `@RestController` + `@Valid` + `@ControllerAdvice` +
+`@SpringBootTest` + `@Testcontainers`.*
+
+- [x] 1. DTOs de entrada y salida
+- [x] 2. Endpoints de lectura (`GET`)
+- [x] 3. Endpoints de escritura (`POST`, `PUT`, `DELETE`)
+- [x] 4. Validación de entrada
+- [x] 5. Errores centralizados con ProblemDetails
+- [x] 6. Logging estructurado
+- [x] 7. Tests unitarios de la validación (12)
+- [ ] 8. Tests de integración con Testcontainers
+- [ ] 9. Cierre: documentación y commit final
+
+> 📄 [`04-crud-de-productos.md`](04-crud-de-productos.md) (en curso; incluye lo pendiente)
 
 ---
 

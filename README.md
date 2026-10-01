@@ -132,6 +132,7 @@ y las decisiones tomadas.
 | 02 | [Solución .NET y primera Minimal API](docs/02-solucion-dotnet-y-minimal-api.md) | Solución y proyectos, `Program.cs`, configuración, OpenAPI, health checks, xUnit |
 | 02b | [Cambio de dominio: tienda de tecnología](docs/02b-cambio-de-dominio.md) | Paso al dominio de la tienda, datos estructurados frente a no estructurados, tipos anulables, migraciones en desarrollo y en producción |
 | 03 | [EF Core, PostgreSQL y migraciones](docs/03-ef-core-y-migraciones.md) | `DbContext`, Fluent API, migraciones, *seed*, liveness y readiness |
+| 04 | [CRUD de productos](docs/04-crud-de-productos.md) 🚧 | Endpoints con `MapGroup`, DTOs, validación de .NET 10, ProblemDetails, logging estructurado, tests |
 
 ## Revisión crítica del código generado con IA
 
