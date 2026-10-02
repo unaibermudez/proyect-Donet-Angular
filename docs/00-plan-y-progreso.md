@@ -9,9 +9,9 @@ mensaje en formato Conventional Commits, y está subido a GitHub.
 
 ## Progreso
 
-**3 de 12 pasos completados**
+**4 de 12 pasos completados**
 
-`████████░░░░░░░░░░░░░░░░░░░░░░` 25 %
+`██████████░░░░░░░░░░░░░░░░░░░░` 33 %
 
 ---
 
@@ -74,7 +74,7 @@ consolas) con `UseSeeding`, solo en desarrollo. *Health checks* separados en
 
 ---
 
-### [ ] 4 — CRUD de productos: endpoints, validación y errores · 🚧 en curso (7 de 9 tramos)
+### [x] 4 — CRUD de productos: endpoints, validación y errores
 
 Endpoints agrupados con `MapGroup("/api/products")` en su propio archivo, DTOs
 con `record`, validación de entrada, manejo global de errores devolviendo
@@ -93,10 +93,10 @@ tests de integración de los endpoints contra Postgres con Testcontainers.
 - [x] 5. Errores centralizados con ProblemDetails
 - [x] 6. Logging estructurado
 - [x] 7. Tests unitarios de la validación (12)
-- [ ] 8. Tests de integración con Testcontainers
-- [ ] 9. Cierre: documentación y commit final
+- [x] 8. Tests de integración con Testcontainers (6)
+- [x] 9. Cierre: documentación y commit final
 
-> 📄 [`04-crud-de-productos.md`](04-crud-de-productos.md) (en curso; incluye lo pendiente)
+> 📄 [`04-crud-de-productos.md`](04-crud-de-productos.md) · 21 tests en verde (12 unitarios + 6 de integración + 3 del paso 2)
 
 ---
 

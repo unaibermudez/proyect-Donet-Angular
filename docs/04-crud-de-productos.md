@@ -1,8 +1,5 @@
 # 04 · CRUD de productos: endpoints, validación y errores
 
-> 🚧 **Paso en curso.** Están hechos los tramos 1 a 7 de 9. Lo que falta está en la
-> sección [Pendiente](#pendiente) al final del documento.
-
 ## Qué hemos hecho
 
 La API ya permite gestionar el catálogo completo en `/api/products`:
@@ -21,7 +18,8 @@ Y alrededor de esos endpoints:
 - **Validación automática** con Data Annotations y la validación integrada de .NET 10. Una regla propia: la fecha de lanzamiento como mucho un año en el futuro, para permitir reservas.
 - **Todos los errores en formato ProblemDetails**: validación, 404, JSON mal formado y excepciones inesperadas.
 - **Logging estructurado**: logs propios con *message templates*, JSON en producción y texto compacto en desarrollo.
-- **12 tests unitarios** de las reglas de validación, que se suman a los 3 del paso 2: 15 en total.
+- **12 tests unitarios** de las reglas de validación.
+- **6 tests de integración** de los endpoints contra un **Postgres real y desechable** con Testcontainers. En total, 21 tests contando los 3 del paso 2.
 - Un archivo **`DocAssist.Api.http`** con todas las peticiones preparadas, incluidas las incorrectas.
 
 Durante el paso se hizo una cosa a propósito: el `POST` se creó primero **sin validación** para ver qué se colaba. Un cuerpo vacío daba un **500** y unos datos absurdos (precio negativo, fecha de 2099) **se guardaban**. La validación del tramo 4 es la solución a ese fallo concreto.
@@ -151,6 +149,39 @@ logger.LogInformation("Product {ProductId} created: {ProductName} ({Category})",
 - Cada caso parte de una **petición válida** y estropea **un único campo** con `with` (copia de un record cambiando propiedades, como el `toBuilder()` de Lombok). `Assert.Single` comprueba que hay exactamente ese error y ningún otro.
 - `[Theory]` + `[MemberData]` + `TheoryData<...>` = `@ParameterizedTest` + `@MethodSource`.
 
+### Tests de integración con Testcontainers
+
+| Opción para probar contra una base de datos | Problema |
+|---|---|
+| La de `docker compose` (desarrollo) | Los tests ensucian los datos y fallan si no está levantada |
+| EF Core InMemory o SQLite | No es Postgres: otro SQL, otros tipos. La documentación de EF Core lo desaconseja |
+| **Testcontainers** ✅ | Un Postgres real que se crea al empezar y se destruye al acabar |
+
+Es la misma librería que en Java (`@Testcontainers` + `@Container`). En .NET se monta como un *fixture* de xUnit:
+
+```csharp
+public sealed class PostgresApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
+{
+    private readonly PostgreSqlContainer _postgres =
+        new PostgreSqlBuilder("pgvector/pgvector:pg17").Build();
+    ...
+}
+```
+
+- **`WebApplicationFactory<Program>`**, la del paso 2, arranca la API en memoria.
+- **`IAsyncLifetime`** es el `@BeforeAll` / `@AfterAll` asíncrono de xUnit. `InitializeAsync` arranca el contenedor y aplica las **migraciones reales** con `MigrateAsync()`, que además ejecuta el *seed* de desarrollo. `DisposeAsync` lo destruye.
+- **`ConfigureAppConfiguration` + `AddInMemoryCollection`** sustituye la cadena de conexión por la del contenedor. Al añadirse la última, tiene prioridad sobre `appsettings.Development.json`. Es el `@DynamicPropertySource` de Spring.
+- **`IClassFixture<PostgresApiFactory>`**: un contenedor por clase de tests, compartido entre sus tests.
+- Se usa la **misma imagen** que en `docker-compose.yml`, para que los tests vean el mismo Postgres, con pgvector, que la aplicación.
+
+**Reglas para que los tests sean fiables:**
+
+- **Cada test crea sus propios datos** y comprueba solo esos: no cuenta cuántos productos hay ni depende del *seed* ni del orden de ejecución.
+- **Se comprueba también lo que no debe pasar**: el filtro por categoría verifica que el móvil creado **no** aparece entre las consolas, no solo que las consolas sí.
+- **El cliente de los tests habla el mismo JSON que la API**: `JsonStringEnumConverter` en sus opciones, porque la API envía y recibe los enums como texto.
+
+**Detalle de C#: implementación explícita de interfaz.** `WebApplicationFactory` ya tiene un `DisposeAsync()` que devuelve `ValueTask`, e `IAsyncLifetime` de xUnit pide uno que devuelva `Task`. Como no pueden convivir dos métodos con el mismo nombre y distinto tipo de retorno, el de xUnit se implementa como `async Task IAsyncLifetime.DisposeAsync()`: solo se usa cuando se llama a través de la interfaz. Java no tiene este mecanismo.
+
 ## Archivos importantes
 
 | Archivo | Qué hace |
@@ -163,6 +194,9 @@ logger.LogInformation("Product {ProductId} created: {ProductName} ({Category})",
 | `appsettings.Development.json` | Niveles de log de desarrollo (SQL de EF Core visible) y salida en texto compacto |
 | `DocAssist.Api.http` | Peticiones de ejemplo, correctas e incorrectas, para probar la API desde el editor |
 | `tests/.../Features/Products/ProductRequestValidationTests.cs` | 12 tests unitarios de las reglas de validación |
+| `tests/.../Infrastructure/PostgresApiFactory.cs` | Arranca la API en memoria contra un Postgres de Testcontainers y aplica las migraciones |
+| `tests/.../Features/Products/ProductEndpointsTests.cs` | 6 tests de integración: crear y leer, validación, 404, modificar, borrar y filtrar |
+| `tests/DocAssist.Api.Tests.csproj` | Añade `Testcontainers.PostgreSql` 4.15.0 |
 
 ## Cómo probarlo
 
@@ -209,12 +243,23 @@ Remove-Item Env:Logging__Console__FormatterName
 Remove-Item Env:Logging__Console__FormatterOptions__IncludeScopes
 ```
 
-**Tests:**
+**Tests** (necesitan **Docker Desktop arrancado** para los de integración):
 
 ```powershell
-dotnet test                                           # 15 tests
-dotnet test --logger "console;verbosity=normal"       # con el nombre de cada test
+dotnet test                                           # 21 tests
+dotnet test --logger "console;verbosity=normal"       # con el nombre y la duración de cada test
+dotnet test --filter "FullyQualifiedName~ProductEndpointsTests"   # solo los de integración
 ```
+
+La primera ejecución tarda algo más: Testcontainers descarga su contenedor auxiliar (Ryuk), que se encarga de borrar los contenedores aunque los tests se interrumpan.
+
+**Comprobar que los tests no tocan la base de desarrollo:** después de ejecutarlos, en la base de `docker compose` no debe haber ningún producto de marca `Valve`, que es la que usan los tests:
+
+```powershell
+docker compose exec db psql -U docassist -d docassist -c "SELECT count(*) FROM products WHERE brand = 'Valve';"   # 0
+```
+
+Esta comprobación importa: si la sustitución de la cadena de conexión fallara, los tests usarían la base de desarrollo, que también está levantada, y **pasarían igual** mientras la ensucian.
 
 ## Decisiones y alternativas
 
@@ -236,6 +281,11 @@ dotnet test --logger "console;verbosity=normal"       # con el nombre de cada te
 | Solo se registran las escrituras | Las lecturas ya las registra ASP.NET Core; más logs serían ruido | Registrar cada lectura |
 | JSON en producción, texto en desarrollo | JSON para los sistemas de logs; texto para leer en la consola | Serilog, con más *sinks* y enriquecedores, como dependencia externa |
 | Archivo `.http` versionado | Documentación viva de la API, ejecutable desde el editor | Colecciones de Postman, fuera del repositorio |
+| Tests de integración con Testcontainers | Postgres real, mismo SQL y mismos tipos que en producción; desechable | EF Core InMemory o SQLite (no son Postgres); la base de desarrollo (se ensucia) |
+| Misma imagen `pgvector/pgvector:pg17` que Docker Compose | Los tests prueban exactamente el Postgres de la aplicación, con pgvector para el paso 8 | `postgres` oficial, sin pgvector |
+| Un contenedor por clase de tests (`IClassFixture`) | Arrancarlo cuesta unos segundos; por test sería muy lento | Uno por test (aislamiento total, mucho más lento) o uno para todo el proyecto (`ICollectionFixture`) |
+| Cada test crea sus propios datos | Independientes del *seed* y del orden de ejecución | Limpiar la base entre tests (por ejemplo, con la librería Respawn) |
+| Los tests usan los DTOs de la API | El DTO tiene 11 campos; copiarlo duplicaría mucho código. El objetivo aquí es el comportamiento, no el contrato | Copias locales del contrato, como el `AppInfo` del paso 2, que detectarían renombrados de propiedades |
 
 ## Para la entrevista
 
@@ -267,23 +317,8 @@ dotnet test --logger "console;verbosity=normal"       # con el nombre de cada te
 - *¿Por qué el orden de los middleware importa?*
   Cada uno envuelve a los siguientes, como los filtros de Servlet. El gestor de excepciones tiene que ir el primero para capturar las excepciones de todo lo que viene después.
 
-## Pendiente
+- *¿Por qué Testcontainers y no una base de datos en memoria?*
+  Porque InMemory o SQLite no son Postgres: traducen el SQL de otra forma y no tienen los mismos tipos ni restricciones, así que un test puede pasar y el código fallar en producción. Con Testcontainers pruebo contra la misma imagen que uso en Docker Compose, con las migraciones reales.
 
-### Tramo 8: tests de integración con Testcontainers
-
-Probar los endpoints contra un **Postgres real y desechable**, en lugar de contra la base de desarrollo o un proveedor en memoria.
-
-1. Instalar el paquete (lo lanza el usuario):
-   ```powershell
-   dotnet add tests/DocAssist.Api.Tests package Testcontainers.PostgreSql
-   ```
-2. Revisar la API de la versión instalada antes de escribir el código, porque la forma de crear el contenedor ha cambiado entre versiones.
-3. Crear `PostgresApiFactory`: hereda de `WebApplicationFactory<Program>`, arranca `pgvector/pgvector:pg17`, sustituye la cadena de conexión y aplica las migraciones.
-4. Crear `ProductEndpointsTests` con, al menos: crear y leer (201 + `Location`), validación (400 con ProblemDetails), producto inexistente (404), modificar, borrar (204 y luego 404) y filtrar por categoría.
-5. A tener en cuenta: los tests leerán y enviarán enums como texto, así que necesitarán `JsonStringEnumConverter` en sus opciones de JSON. Además, `dotnet test` pasará a necesitar Docker arrancado.
-
-### Tramo 9: cierre del paso
-
-- Completar este documento con el tramo 8 y quitar la marca de "en curso".
-- Marcar el paso 4 en `docs/00-plan-y-progreso.md`.
-- Commit final del paso.
+- *¿Cómo sabes que los tests de integración no usan tu base de desarrollo?*
+  La cadena de conexión del contenedor se añade la última, así que tiene prioridad. Y lo comprobé: después de ejecutar los tests, en la base de desarrollo no hay ninguno de los productos que crean.
