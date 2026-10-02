@@ -158,7 +158,7 @@ entrarán en su commit. En el commit del cambio de dominio solo va la documentac
 Desde `backend/`:
 
 ```powershell
-cd C:\dev\PERSONAL\proyecto-C#-Angular\backend
+cd C:\dev\PERSONAL\proyecto-dotnet-angular\backend
 
 # Compilar: debe terminar con 0 advertencias y 0 errores
 dotnet build
@@ -171,7 +171,7 @@ Comprobar que no queda ninguna referencia al dominio anterior (desde la raíz de
 repositorio, en Git Bash):
 
 ```bash
-cd "/c/dev/PERSONAL/proyecto-C#-Angular"
+cd "/c/dev/PERSONAL/proyecto-dotnet-angular"
 grep -rniE --exclude-dir=.git --exclude-dir=bin --exclude-dir=obj \
   "equipment|inversor|inverter|convertidor|frequencyconverter|powerkw|registeredon|query_equipment" .
 ```

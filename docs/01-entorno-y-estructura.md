@@ -82,7 +82,7 @@ Estás en Windows, así que git podría meter finales de línea `CRLF` en archiv
 Con Docker Desktop ya arrancado:
 
 ```bash
-cd C:/dev/PERSONAL/proyecto-C#-Angular
+cd C:/dev/PERSONAL/proyecto-dotnet-angular
 
 # 1. Crear el .env a partir de la plantilla
 cp .env.example .env

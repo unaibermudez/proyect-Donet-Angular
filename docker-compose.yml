@@ -3,6 +3,11 @@
 # `dotnet run` y el frontend con `ng serve` para tener recarga en caliente.
 # En el paso 12 se añadirán los servicios `api` y `web` con sus Dockerfile.
 
+# Nombre fijo del proyecto de Compose. Sin él, Compose usa el nombre de la carpeta,
+# y al renombrarla crearía volúmenes nuevos y vacíos (base de datos y modelos).
+# Se mantiene el nombre original para seguir usando los volúmenes existentes.
+name: proyecto-c-angular
+
 services:
   db:
     # Imagen oficial de Postgres con la extensión pgvector ya compilada.

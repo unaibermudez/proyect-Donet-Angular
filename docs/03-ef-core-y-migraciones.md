@@ -157,7 +157,7 @@ El paquete `Microsoft.EntityFrameworkCore.Design` tiene `<PrivateAssets>all</Pri
 **Preparar la base de datos** (con Docker Desktop arrancado):
 
 ```powershell
-cd C:\dev\PERSONAL\proyecto-C#-Angular
+cd C:\dev\PERSONAL\proyecto-dotnet-angular
 docker compose up -d
 
 cd backend
@@ -176,7 +176,7 @@ dotnet ef migrations script --project src/DocAssist.Api
 **Consultar los datos:**
 
 ```powershell
-cd C:\dev\PERSONAL\proyecto-C#-Angular
+cd C:\dev\PERSONAL\proyecto-dotnet-angular
 docker compose exec db psql -U docassist -d docassist
 ```
 
@@ -199,7 +199,7 @@ Si una consulta abre el paginador (`(END)` abajo), se sale con `q`. Con `\pset p
 **Probar liveness y readiness:**
 
 ```powershell
-cd C:\dev\PERSONAL\proyecto-C#-Angular\backend
+cd C:\dev\PERSONAL\proyecto-dotnet-angular\backend
 dotnet run --project src/DocAssist.Api
 
 # en otro terminal
@@ -219,7 +219,7 @@ curl http://localhost:5080/health/ready    # Healthy otra vez, sin reiniciar la 
 **Empezar de cero con la base de datos** (sin tocar los modelos de Ollama):
 
 ```powershell
-cd C:\dev\PERSONAL\proyecto-C#-Angular\backend
+cd C:\dev\PERSONAL\proyecto-dotnet-angular\backend
 dotnet ef database drop --project src/DocAssist.Api --force   # borra la base docassist
 dotnet ef database update --project src/DocAssist.Api         # la recrea con la migración y el seed
 ```

@@ -132,3 +132,25 @@ El objetivo no es demostrar que la IA se equivoca, sino demostrar el hábito de
 - **Qué aprendí:** probar los casos de error, no solo el camino feliz. Y si se
   sospecha de un fallo, es mejor comprobarlo antes de dar el código por bueno
   que esperar a que aparezca.
+
+### 08 - "El `#` en el nombre de la carpeta no es problema"  (paso 1, detectado en el paso 5)
+- **Qué se generó:** en el paso 1, cuando GitHub convirtió el `#` del nombre del
+  repositorio en `--`, el asistente afirmó que la carpeta local podía seguir
+  llamándose `proyecto-C#-Angular` "sin problema".
+- **Qué problema tenía:** cuatro pasos después, `ng serve` no pudo arrancar. Angular
+  usa Vite, y Vite convierte las rutas de archivo en URLs; en una URL, el `#` marca
+  el inicio del fragmento y el resto de la ruta se descarta. El error lo mostraba:
+  buscaba archivos en `C:/dev/PERSONAL/proyecto-C`. El propio Vite avisaba del `#`.
+  Que GitHub rechazara el carácter ya era una señal de que daría problemas en otras
+  herramientas.
+- **Cómo se corrigió:** se renombró la carpeta a `proyecto-dotnet-angular`. Antes
+  se fijó `name: proyecto-c-angular` en `docker-compose.yml`, porque Compose usa el
+  nombre de la carpeta para nombrar los volúmenes y, sin eso, habría creado
+  volúmenes nuevos y vacíos (perdiendo la base de datos y 5 GB de modelos). También
+  se actualizaron las rutas de la documentación y se copió la memoria del asistente
+  a la ruta nueva.
+- **Qué aprendí:** los caracteres especiales en rutas (`#`, espacios, tildes) son
+  una fuente conocida de fallos en herramientas de desarrollo. Cuando una
+  herramienta rechaza un nombre, hay que preguntarse si las demás lo aceptarán. Y
+  un cambio que parece cosmético, como renombrar una carpeta, puede tener efectos
+  ocultos, como los volúmenes de Docker.

@@ -77,7 +77,7 @@ flowchart TB
 ### Requisitos
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- [Node.js 20+](https://nodejs.org/)
+- [Node.js 24 LTS](https://nodejs.org/) (Angular 22 exige 22.22+ o 24.15+)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 
 ### Puesta en marcha

@@ -203,7 +203,7 @@ public sealed class PostgresApiFactory : WebApplicationFactory<Program>, IAsyncL
 Con Docker arrancado y la base de datos migrada (paso 3):
 
 ```powershell
-cd C:\dev\PERSONAL\proyecto-C#-Angular\backend
+cd C:\dev\PERSONAL\proyecto-dotnet-angular\backend
 dotnet run --project src/DocAssist.Api
 ```
 

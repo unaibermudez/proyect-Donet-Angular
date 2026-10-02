@@ -187,7 +187,7 @@ Los parámetros entre paréntesis después del nombre de la clase son un constru
 Todo desde `backend/`:
 
 ```powershell
-cd C:\dev\PERSONAL\proyecto-C#-Angular\backend
+cd C:\dev\PERSONAL\proyecto-dotnet-angular\backend
 
 # Compilar la solución completa
 dotnet build

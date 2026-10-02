@@ -214,6 +214,20 @@ Pruebas hechas contra los modelos reales al cerrar el paso 1:
 | El contexto por defecto es de **4096 tokens** | `ollama ps` | Paso 10: con varios *chunks* de contexto puede quedarse corto; habrá que ajustar `num_ctx` |
 | En la prueba de tool calling, el modelo envió un argumento numérico como **texto** (`"100"` en lugar de `100`) | prueba de tool calling | Paso 11: los argumentos de las herramientas hay que validarlos y convertirlos, nunca fiarse del tipo que manda el modelo |
 
+## Nota: carpeta renombrada (paso 5)
+
+La carpeta del proyecto se llamaba `proyecto-C#-Angular`. El `#` impedía arrancar
+Angular, porque Vite convierte las rutas en URLs y en una URL el `#` corta la ruta.
+Se renombró a **`C:\dev\PERSONAL\proyecto-dotnet-angular`**.
+
+Para no perder datos, `docker-compose.yml` fija `name: proyecto-c-angular`: así
+Compose sigue usando los volúmenes originales (`proyecto-c-angular_db-data` y
+`proyecto-c-angular_ollama-data`) aunque la carpeta tenga otro nombre. Detalle en la
+entrada 08 de `AI_REVIEW.md`.
+
+También se actualizó Node a **24 LTS** (24.21.0, con nvm-windows), porque Angular 22
+exige Node 22.22+ o 24.15+.
+
 ## Nota: Docker en el PATH
 
 Docker Desktop se ha instalado en una ruta de usuario
