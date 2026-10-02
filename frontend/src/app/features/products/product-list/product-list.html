@@ -1,0 +1,36 @@
+<h2>Productos</h2>
+
+@if (loading()) {
+  <p>Cargando productos…</p>
+} @else if (error()) {
+  <p class="error" role="alert">{{ error() }}</p>
+} @else {
+  <p>{{ productCount() }} productos</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Nombre</th>
+        <th scope="col">Marca</th>
+        <th scope="col">Categoría</th>
+        <th scope="col" class="number">Precio</th>
+        <th scope="col" class="number">Stock</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (product of products(); track product.id) {
+        <tr>
+          <td>{{ product.name }}</td>
+          <td>{{ product.brand }}</td>
+          <td>{{ categoryLabels[product.category] }}</td>
+          <td class="number">{{ product.price | currency: 'EUR' }}</td>
+          <td class="number">{{ product.stock }}</td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="5">No hay productos.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}

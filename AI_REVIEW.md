@@ -154,3 +154,30 @@ El objetivo no es demostrar que la IA se equivoca, sino demostrar el hábito de
   herramienta rechaza un nombre, hay que preguntarse si las demás lo aceptarán. Y
   un cambio que parece cosmético, como renombrar una carpeta, puede tener efectos
   ocultos, como los volúmenes de Docker.
+
+### 09 - Ruta de import incorrecta para el componente generado  (paso 5)
+- **Qué se generó:** en las instrucciones del sub-paso 6a, el asistente dio la ruta
+  `import('./features/products/product-list')` para la carga *lazy* de `ProductList`,
+  suponiendo que `ng generate component` crearía los archivos directamente en
+  `features/products/`.
+- **Qué problema tenía:** el CLI crea cada componente **en su propia subcarpeta**
+  (`features/products/product-list/product-list.ts`). Con la ruta propuesta, la app
+  no habría compilado.
+- **Cómo se corrigió:** al ejecutar el comando, la salida (`CREATE .../product-list/...`)
+  mostró la subcarpeta, y la ruta se cambió a
+  `./features/products/product-list/product-list` antes de escribir `app.routes.ts`.
+- **Qué aprendí:** leer la salida de los generadores antes de escribir código que
+  depende de dónde dejan los archivos, en lugar de dar por hecha la estructura.
+
+### 10 - `@Injectable` cuando el proyecto pedía `@Service`  (paso 5)
+- **Qué se generó:** el `ProductService` se explicó y se escribió con
+  `@Injectable({ providedIn: 'root' })`, la forma clásica de crear un servicio singleton.
+- **Qué problema tenía:** el `CLAUDE.md` del frontend, generado por `ng new` con las
+  buenas prácticas de Angular 22, dice que en los servicios singleton nuevos se prefiere
+  el decorador **`@Service()`**, nuevo en Angular 22. El asistente no había leído ese
+  archivo entero antes de proponer el servicio. Funcionar, funciona: `@Injectable`
+  sigue siendo válido.
+- **Cómo se corrigió:** se detectó al documentar el paso. Queda pendiente decidir si
+  se cambia a `@Service()` en el sub-paso 7.
+- **Qué aprendí:** leer las reglas del proyecto (`CLAUDE.md`) antes de generar código,
+  sobre todo en un framework que cambia tan rápido como Angular.

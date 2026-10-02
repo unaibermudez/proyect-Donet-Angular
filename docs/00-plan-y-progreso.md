@@ -110,6 +110,17 @@ que consuma la API. Proxy de desarrollo para evitar problemas de CORS.
 de Angular, `HttpClient`, `@if`/`@for`. *Equivalente a Vite + React Router +
 un hook `useProducts`; signals frente a `useState`.*
 
+- [x] 1. Arrancar `ng serve` en la carpeta renombrada
+- [x] 2. Layout mínimo (cabecera + `router-outlet`)
+- [x] 3. Proxy de desarrollo `/api` → `localhost:5080`
+- [x] 4. Modelo `Product` y `provideHttpClient()`
+- [x] 5. `ProductService`
+- [x] 6. Componente `ProductList` con signals, `@if`/`@for` y ruta *lazy*
+- [ ] 7. Test del `ProductService`
+- [ ] 8. Cierre: documentación y commit final
+
+> 📄 [`05-frontend-angular-y-lista.md`](05-frontend-angular-y-lista.md) · en curso
+
 ---
 
 ### [ ] 6 — Formularios reactivos: crear y editar productos
